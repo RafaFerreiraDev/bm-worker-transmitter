@@ -1,0 +1,8 @@
+import os
+
+SHAREPOINT_CONFIGS = {
+    "CLIENT_ID": os.getenv("SHAREPOINT_CLIENT_ID"),
+    "CLIENT_SECRET": os.getenv("SHAREPOINT_CLIENT_SECRET"),
+    "SITE_URL": os.getenv("SHAREPOINT_SITE_URL"),
+    "BASE_FOLDER_URL": os.getenv("SHAREPOINT_BASE_FOLDER_URL"),
+}
