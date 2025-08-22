@@ -1,10 +1,5 @@
-from worker_transmitter_notifier.src.drivers.sharepoint_handler import SharepointHandler
-from worker_transmitter_notifier.src.configs import SHAREPOINT_CONFIGS
+from worker_transmitter_notifier.src.controller.sharepoint_files_controller import SharepointFilesController
 
-sharepoint_handler = SharepointHandler()
 
-sharepoint_handler.explore_folder(SHAREPOINT_CONFIGS["BASE_FOLDER_URL"])
-
-print("\n📁 Lista completa de arquivos:\n")
-for path in sharepoint_handler.all_file_paths:
-    print(path)
+sharepoint_files_controller = SharepointFilesController()
+sharepoint_files_controller.get_files_and_send_to_rabbitmq()
