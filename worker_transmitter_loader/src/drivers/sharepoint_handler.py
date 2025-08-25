@@ -21,8 +21,14 @@ class SharepointHandler:
         complete_url = f'{SHAREPOINT_CONFIGS["BASE_FOLDER_URL"]}/{file_url}'
         response = File.open_binary(self.__ctx, complete_url)
         file_content = response.content
-
-        # Cria um "buffer de arquivo" em memória, decodificado com o encoding informado
         buffer = io.BytesIO(file_content)
-        for line in io.TextIOWrapper(buffer, encoding=encoding, errors="replace"):
-            yield line.rstrip("\n")
+
+        wrapper = io.TextIOWrapper(buffer, encoding=encoding, errors="replace")
+        first_line = wrapper.readline().rstrip("\n")
+
+        def generator():
+            yield first_line
+            for line in wrapper:
+                yield line.rstrip("\n")
+
+        return first_line, generator()
