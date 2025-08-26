@@ -72,7 +72,6 @@ class S3Uploader:
                 UploadId=upload_id,
                 MultipartUpload={"Parts": parts},
             )
-            print(f"✅ Upload concluído: s3://{self.bucket_name}/{key}")
 
         except Exception as e:
             # Em caso de erro, cancela upload no S3
