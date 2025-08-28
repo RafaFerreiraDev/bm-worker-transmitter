@@ -1,5 +1,5 @@
-import boto3
 from contextlib import closing
+import boto3
 from worker_transmitter_loader.src.configs import S3_CONFIGS
 
 
@@ -31,7 +31,10 @@ class S3Uploader:
         - chunk_size: tamanho de cada parte (default 5MB)
         """
 
-        mpu = self.s3_client.create_multipart_upload(Bucket=self.bucket_name, Key=key)
+        mpu = self.s3_client.create_multipart_upload(Bucket=self.bucket_name, Key=key, Metadata={
+            "processo-id": "0198e9c1-743e-73b1-b664-8ff70c9640a1",
+            "file-name": key
+        })
         upload_id = mpu["UploadId"]
 
         parts = []
