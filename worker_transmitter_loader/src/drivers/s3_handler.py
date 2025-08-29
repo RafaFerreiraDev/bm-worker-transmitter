@@ -1,5 +1,6 @@
 from contextlib import closing
 import boto3
+from botocore.exceptions import ClientError
 from worker_transmitter_loader.src.configs import S3_CONFIGS
 
 
@@ -15,6 +16,19 @@ class S3Uploader:
             aws_secret_access_key=self.aws_secret_access_key,
             region_name=self.region_name,
         )
+
+    def object_exists(self, key: str) -> bool:
+        """
+        Verifica se o objeto já existe no bucket S3.
+        """
+        try:
+            self.s3_client.head_object(Bucket=self.bucket_name, Key=key)
+            return True
+        except ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                return False
+            else:
+                raise  # Erro inesperado
 
     def upload_stream(
         self,

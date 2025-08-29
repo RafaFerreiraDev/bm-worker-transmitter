@@ -14,7 +14,7 @@ def consumer_calback(ch, method, properties, body) -> None:
 
     for file_path_dir in arquivos:
         try:
-            if "Arquivos Entradas e Saídas" in file_path_dir or "TRANSMIT" in file_path_dir: continue
+            #if "Arquivos Entradas e Saídas" in file_path_dir or "TRANSMIT" in file_path_dir: continue
             files_loader_controller.load(file_path_dir)
         except Exception as exception:
             logger_handler.log(f"Erro no arquivo: {file_path_dir}\n\n {exception}")
