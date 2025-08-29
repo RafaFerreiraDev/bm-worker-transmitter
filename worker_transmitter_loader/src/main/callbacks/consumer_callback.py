@@ -1,7 +1,7 @@
 #pylint:disable=W0613
 import json
 from worker_transmitter_loader.src.drivers.logger_handler import logger_handler
-from worker_transmitter_loader.src.controller.files_loader_controller import FilesLoaderController
+from worker_transmitter_loader.src.controller.xlsx_loader_controller import XlsxLoaderController
 
 def consumer_calback(ch, method, properties, body) -> None:
 
@@ -10,7 +10,7 @@ def consumer_calback(ch, method, properties, body) -> None:
     logger_handler.log('Iniciando processo de consumo de mensagens')
 
     arquivos = message["arquivos"]
-    files_loader_controller = FilesLoaderController()
+    files_loader_controller = XlsxLoaderController()
 
     for file_path_dir in arquivos:
         try:

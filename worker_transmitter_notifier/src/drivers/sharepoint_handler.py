@@ -21,7 +21,7 @@ class SharepointHandler:
 
         for file in folder.files:
             full_path = f"{relative_path}{file.properties['Name']}"
-            if full_path.endswith((".txt", ".lst")):
+            if full_path.endswith((".xlsx")):
                 self.all_file_paths.append(full_path)
 
         for subfolder in folder.folders:

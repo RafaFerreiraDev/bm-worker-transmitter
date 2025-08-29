@@ -1,4 +1,5 @@
 from contextlib import closing
+import io
 import boto3
 from botocore.exceptions import ClientError
 from worker_transmitter_loader.src.configs import S3_CONFIGS
@@ -103,3 +104,13 @@ class S3Uploader:
             del buffer
             del parts
             del line_generator
+
+    def upload_fileobj(self, file_obj: io.BytesIO, s3_key: str):
+        """
+        Faz upload de um arquivo (em memória) para o S3.
+        :param file_obj: objeto BytesIO contendo o arquivo
+        :param s3_key: chave (path) do arquivo no bucket
+        """
+        file_obj.seek(0)  # garante que o ponteiro está no início
+        self.s3_client.upload_fileobj(file_obj, self.bucket_name, s3_key)
+        print(f"Arquivo enviado para s3://{self.bucket_name}/{s3_key}")

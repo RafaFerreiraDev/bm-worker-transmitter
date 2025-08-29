@@ -32,3 +32,12 @@ class SharepointHandler:
                 yield line.rstrip("\n")
 
         return first_line, generator()
+
+    def download_xlsx_file(self, file_name: str) -> io.BytesIO:
+        """
+        Faz download de um arquivo do SharePoint e retorna como stream em memória (BytesIO).
+        :param sharepoint_file_url: caminho relativo do arquivo no SharePoint
+        """
+        complete_url = f'{SHAREPOINT_CONFIGS["BASE_FOLDER_URL"]}/{file_name}'
+        response = File.open_binary(self.__ctx, complete_url)
+        return io.BytesIO(response.content)  # retorna como objeto stream

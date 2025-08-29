@@ -9,7 +9,7 @@ class SharepointFilesController:
         self.__rabbitmq_publisher = RabbitmqPublisher()
         self.__sharepoint_handler = SharepointHandler()
         self.__logger_handler = LoggerHandler()
-        self.__chunk_size = 30
+        self.__chunk_size = 3
 
     def get_files_and_send_to_rabbitmq(self) -> None:
         self.__logger_handler.log(f"Iniciando processo de busca...: {self.__base_folder_url}")
