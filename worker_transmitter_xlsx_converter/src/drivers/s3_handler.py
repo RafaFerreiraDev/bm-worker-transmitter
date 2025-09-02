@@ -1,5 +1,4 @@
 from contextlib import closing
-import pandas as pd
 import io
 import boto3
 from botocore.exceptions import ClientError
@@ -19,23 +18,16 @@ class S3Uploader:
             region_name=self.region_name,
         )
 
-    def read_excel_from_s3(self, s3_client, bucket: str, key: str, sheet_name: str = 0) -> pd.DataFrame:
-        """
-        Reads an Excel (.xlsx or .xls) file from S3 using the shared S3 client.
-
-        :param bucket: S3 bucket name.
-        :param key: S3 object key (path to the file).
-        :param sheet_name: Sheet name or index (default: first sheet).
-        :return: pandas DataFrame containing the Excel data.
-        """
-
+    def download_fileobj(self, key):
         try:
-            response = s3_client.get_object(Bucket=bucket, Key=key)
-            content = response['Body'].read()
-            buffer = io.BytesIO(content)
-            df = pd.read_excel(buffer, sheet_name=sheet_name, engine='calamine', dtype=str)
-            print(df.shape)
-            return df
+            file_stream = io.BytesIO()
+            self.s3_client.download_fileobj(self.bucket_name, key, file_stream)
+            file_stream.seek(0)
+            return file_stream
+        except ClientError as e:
+            print(f"Erro ao baixar arquivo: {e}")
+            return None
 
-        except Exception as e:
-            pass
+    def upload_fileobj(self, buffer, key):
+        buffer.seek(0)
+        self.s3_client.upload_fileobj(buffer, self.bucket_name, key)
