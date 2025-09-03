@@ -24,7 +24,7 @@ column_type_map = {
     "CFOP": "uint16",
     "EAN Trib": "string",
     "EAN": "string",
-    "CEST": "string", # string sem ponto
+    "CEST": "string", # string sem ponto --- Ser vazio caso = 0 ou sem informação
     "NCM": "string",
     "BC ICMS": "float64",
     "% ICMS": "float64",

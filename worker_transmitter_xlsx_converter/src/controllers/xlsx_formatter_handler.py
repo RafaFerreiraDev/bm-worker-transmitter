@@ -26,7 +26,7 @@ class XlsxFormatterHandler:
 
         # Pronto para upload ao S3
         parquet_buffer.seek(0)  # necessário antes de fazer o upload
-        self.__s3_uploader.upload_fileobj(parquet_buffer, key="GPA/47508411/DB_PARQUET_SPED_V2/GERENCIAL_NFE/06.2025 16 a 30.parquet")
+        self.__s3_uploader.upload_fileobj(parquet_buffer, key="GPA/47508411/DB_PARQUET_SPED_V2/GERENCIAL_NFE/02.2025 16 a 28.parquet")
 
     def __format_col(self, df: pd.DataFrame):
         cols_remover_zeros = {"Código Produto", "EAN Trib", "EAN"}
@@ -46,10 +46,28 @@ class XlsxFormatterHandler:
                     df[col] = df[col].astype("string")
 
                 elif dtype == "string":
-                    df[col] = df[col].astype("string")
+                    if col == "CEST":
+                        # Mantém vazio/nulo como <NA>
+                        df[col] = df[col].apply(
+                            lambda x: None if pd.isna(x) or str(x).strip() == "" else str(x)
+                        )
+                        df[col] = df[col].astype("string")
+                    else:
+                        df[col] = df[col].apply(
+                            lambda x: str(int(x)) if pd.notna(x) and isinstance(x, (int, float)) and float(x).is_integer()
+                            else str(x) if pd.notna(x) else None
+                        )
+                        df[col] = df[col].astype("string")
 
                 elif dtype == "float64":
-                    df[col] = pd.to_numeric(df[col], errors='coerce').astype("float64")
+                    df[col] = (
+                        df[col]
+                        .astype(str)  # garante string
+                        .str.strip()
+                        .replace({"": "0", "nan": "0", "None": "0"})  # vazio/nulo -> "0"
+                        .str.replace(",", ".", regex=False)           # vírgula -> ponto
+                    )
+                    df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0).astype("float64")
 
                 elif dtype == "uint16":
                     df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype("UInt16")  # pandas usa "UInt16"
@@ -60,6 +78,11 @@ class XlsxFormatterHandler:
 
                 else:
                     print(f"Tipo não reconhecido para coluna {col}: {dtype}")
+
+                print(col)
+                xxx = df[col][2]
+                print(xxx)
+                print()
 
             except Exception as e:
                 print(f"Erro ao converter coluna {col} para {dtype}: {e}")
