@@ -39,7 +39,7 @@ column_type_map = {
     "% COFINS": "float64",
     "Valor COFINS": "float64",
     "BC PIS": "float64",
-    "% PIS": "float64",
+    "% PIS ": "float64",
     "Valor PIS": "float64",
     "CSON ICMS": "string",
     "CST ICMS": "string", # errado

@@ -7,7 +7,7 @@
             "request": "launch",
             "module": "pytest",
             "args": [
-                "worker_transmitter_xlsx_converter/src/controllers/xlsx_formatter_handler_test.py"
+                "run_worker_xlsx_converter.py"
             ],
             "console": "integratedTerminal",
             "justMyCode": true,

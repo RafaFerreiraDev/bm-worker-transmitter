@@ -1,33 +1,58 @@
 import pandas as pd
 from worker_transmitter_xlsx_converter.src.drivers.s3_handler import S3Uploader
 from .type_map import column_type_map
-import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import io
 
 
-class XlsxFormatterHandler:
+class XlsxMultipleFormatterHandler:
     def __init__(self):
         self.__s3_uploader = S3Uploader()
 
-    def read_s3(self, s3_filename: str, parquet_key:str):
-        print(parquet_key)
-        excel_stream = self.__s3_uploader.download_fileobj(s3_filename)
-        print(excel_stream)
+    def read_s3(self, s3_filenames: list[str], year, month):
+        print("Iniciando o processo")
+        dfs = []
+        for s3_filename in s3_filenames:
+            excel_stream = self.__s3_uploader.download_fileobj(s3_filename)
+            raw_df = pd.read_excel(excel_stream, engine='openpyxl')
+            dfs.append(raw_df)
 
-        raw_df = pd.read_excel(excel_stream, engine='openpyxl')
-        df = self.__format_col(raw_df)
+        # Concatena todos os DataFrames
+        combined_df = pd.concat(dfs, ignore_index=True)
+        df = self.__format_col(combined_df)
 
-        table = pa.Table.from_pandas(df, preserve_index=False)
+        # Extrai ano e mês da DataEmissao
+        if "DataEmissao" not in df.columns:
+            raise ValueError("Coluna 'DataEmissao' não encontrada no arquivo Excel.")
 
-        # Criar buffer Parquet na memória
-        parquet_buffer = io.BytesIO()
-        pq.write_table(table, parquet_buffer, compression="snappy")
+        df["DataEmissao"] = pd.to_datetime(df["DataEmissao"], errors="coerce")
+        if df["DataEmissao"].isna().all():
+            raise ValueError("Não foi possível converter nenhuma DataEmissao para datetime.")
 
-        # Pronto para upload ao S3
-        parquet_buffer.seek(0)  # necessário antes de fazer o upload
-        self.__s3_uploader.upload_fileobj(parquet_buffer, key=parquet_key)
+        #year = df["DataEmissao"].dt.year.iloc[0]
+        # month = df["DataEmissao"].dt.month.iloc[0]
+
+        # Cria parquet separado para cada CNPJFilial
+        if "CNPJFilial" not in df.columns:
+            raise ValueError("Coluna 'CNPJFilial' não encontrada no arquivo Excel.")
+
+        for cnpj, group_df in df.groupby("CNPJFilial"):
+            if pd.isna(cnpj) or str(cnpj).strip() == "":
+                print("Aviso: Encontrado CNPJFilial vazio, pulando.")
+                continue
+
+            table = pa.Table.from_pandas(group_df, preserve_index=False)
+
+            parquet_buffer = io.BytesIO()
+            pq.write_table(table, parquet_buffer, compression="snappy")
+            parquet_buffer.seek(0)
+
+            file_name = f"{cnpj}_{year}_0{month}.parquet"
+            s3_key = f"GPA/47508411/DB_PARQUET_SPED_V2/GERENCIAL_NFE/FILIAIS/{file_name}"
+
+            print(f"Enviando arquivo {s3_key} para S3...")
+            self.__s3_uploader.upload_fileobj(parquet_buffer, key=s3_key)
 
     def __format_col(self, df: pd.DataFrame):
         cols_remover_zeros = {"Código Produto", "EAN Trib", "EAN"}
